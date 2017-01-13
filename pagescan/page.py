@@ -25,7 +25,7 @@ class BaraholkaPage:
         data.url = self.url
 
         root = html.fromstring(self.page)
-    
+        
         element_with_section = root.find_class('b-path')[0]
         data.section = ""
         for x in element_with_section.itertext():
