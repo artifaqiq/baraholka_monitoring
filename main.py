@@ -1,56 +1,60 @@
-import urllib.request
-import psycopg2
+from pagescan.page import BaraholkaPage
+from sectionscan.section_scanning import get_goods_urls
 
-max = 10
+import telebot
+import threading
+import time
 
-# nice_urls = []
-#
-# for x in range(3500, 40000000):
-#     url = "http://baraholka.onliner.by/viewtopic.php?t={}".format(x)
-#     doc = str(urllib.request.urlopen(url).read())
-#     count = doc.count("<div class=\"b-msgpost-txt\">")
-#     if count > max:
-#         nice_urls.append(url)
-#         print(" ========= {} : {}".format(count, url))
-#     else: print("{} : {}".format(count, url))
-#
-#     if x % 1000 == 0:
-#         f = open("i.txt", "w")
-#
-#         f.write(str(x))
-#         f.close()
-#
-# for nice_url in nice_urls:
-#     print(nice_url)
+TOKEN = "494320620:AAEGN18JQyY45P8oDO4Wi0VuV4Hb4rqNh78"
+CHAT_ID = "270380442"
+
+bot = telebot.TeleBot(TOKEN)
+
+urls = get_goods_urls("https://baraholka.onliner.by/search.php?q=ps+4+slim&f=&topicTitle=1")
+
+ps4s = []
+
+@bot.message_handler(content_types=["text"])
+def repeat_all_messages(message):
+    if "Give" in message.text or "Дай" in message.text:
+        for url in urls:
+            bot.send_message(message.chat.id, url)
+            print(message.chat.id)
 
 
+def find_all():
+    urls = get_goods_urls("https://baraholka.onliner.by/search.php?q=ps+4+slim&f=&topicTitle=1")
+
+    for url in urls:
+        ps4 = BaraholkaPage()
+        ps4.download(url)
+        if ps4.data() not in map(lambda x: x.data(), ps4s):
+
+            bot.send_message(CHAT_ID, "Found new PS 4 Slim!")
+            bot.send_message(CHAT_ID, ps4.data().name)
+            bot.send_message(CHAT_ID, "\t" + ps4.data().cost + " BYN")
+            bot.send_message(CHAT_ID, "\t" + ps4.data().description)
+            bot.send_message(CHAT_ID, url)
+
+            print("Found new PS 4 !")
+            ps4s.append(ps4)
+            print(ps4.data().name)
+            print("\t", ps4.data().cost, "BYN")
+            print("\t", ps4.data().description)
+            print("\t", ps4.data().url)
+
+    return urls
 
 
+def run_telebot():
+    bot.polling(none_stop=True)
 
+if __name__ == '__main__':
 
+    threading.Thread(target=run_telebot, daemon=True).start()
+    print("Bot has been started")
 
-try:
-    conn = psycopg2.connect("dbname='baraholka_onliner' user='baraholka_monitoring' host='localhost' password='12345678'")
-except:
-    print(" ### Unable to connect to database")
-    exit()
-
-
-data = {
-    'url': "http://url.html",
-    'count_comments': 5,
-    'ups' : 20,
-    'description' : "Description",
-    'cost' : "122r",
-    'date' : "12.12.12222",
-    'section': "Мотоциклы"
-}
-
-cur = conn.cursor()
-
-cur.execute("""INSERT INTO goods (url, count_comments, cost, description, date, ups, section)\
-            VALUES ('{url}', {count_comments}, '{cost}', '{description}', '{date}', {ups}, '{section}')""".format(**data))
-
-conn.commit()
-
+    while True:
+        find_all()
+        time.sleep(1)
 

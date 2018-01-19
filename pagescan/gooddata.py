@@ -21,3 +21,8 @@ class GoodData:
         self.author_name = author_name
         self.name = name
 
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

@@ -3,6 +3,7 @@ from lxml import html as html
 
 from .gooddata import GoodData
 
+
 class BaraholkaPage:
     def __init__(self):
         self.url = None
@@ -18,7 +19,7 @@ class BaraholkaPage:
         return self.correct
 
     def data(self):
-        if self.correct == False:
+        if not self.correct:
             raise Exception("{} is not baraholha good page".format(self.url))
 
         data = GoodData()
@@ -35,8 +36,8 @@ class BaraholkaPage:
         data.cost = root.find_class('price-primary').pop().text.split(',')[0]
         data.description = root.find_class('fast-desc').pop().text
         data.author_name = root.find_class('_name star-notes')[0].text
-        data.ups = root.find_class('b-ba-subj-up b-ba-subj-upped').pop().find('strong').text.split()[0]
-        data.last_up = [x for x in root.find_class('b-ba-subj-up b-ba-subj-upped').pop().itertext()][2].strip()
+        # data.ups = root.find_class('b-ba-subj-up b-ba-subj-upped').pop().find('strong').text.split()[0]
+        # data.last_up = [x for x in root.find_class('b-ba-subj-up b-ba-subj-upped').pop().itertext()][2].strip()
         data.date = root.find_class('msgpost-date')[0].find('span').text.strip()
         data.count_comments = len(root.find_class('b-msgpost-txt')) - 1
         return data

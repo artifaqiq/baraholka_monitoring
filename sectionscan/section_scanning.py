@@ -6,6 +6,7 @@ from lxml import html as html
 
 _GOODS_PER_PAGE = 50
 
+
 def get_goods_urls(section_url, cat=1):
     """
     Return list of goods urls on current section
@@ -25,14 +26,12 @@ def get_goods_urls(section_url, cat=1):
     page = str(urllib.request.urlopen(url).read().decode('utf-8'))
     root = html.fromstring(page)
 
-    count_pages = int(root.find_class('pages-fastnav').pop().findall('li')[-2].find('a').text)
+    count_pages = len(root.find_class('wraptxt'))
 
     urls = []
     for i in range(0, count_pages - 1):
         url = str(furl(section_url).add({'start' : i * _GOODS_PER_PAGE}))
         urls += _get_goods_urls_one_page(url, cat)
-
-        print('{} %'.format(i / (count_pages - 1) * 100))
 
     return urls
 
